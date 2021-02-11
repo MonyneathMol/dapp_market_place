@@ -62,6 +62,12 @@ contract('Marketplace',([deployer, seller, buyer]) => {
         });
 
         it('should sell product', async () => {
+            //track seller balance before purchase
+            let oldSellerBalance
+            oldSellerBalance = await web3.eth.getBalance(seller)
+            oldSellerBalance = new web3.utils.BN(oldSellerBalance)
+
+
             //success purchase
             result = await marketplace.purchaseProduct(productCount,{from:buyer,value: web3.utils.toWei('1','Ether')})
             //check log
@@ -71,6 +77,30 @@ contract('Marketplace',([deployer, seller, buyer]) => {
             assert.equal(event.price, '1000000000000000000', 'price is correct')
             assert.equal(event.owner, buyer, 'owner is correct')
             assert.equal(event.purchased, true, 'purchased is correct')
+
+            //check if seller recieve fund
+            let newSellerBalance
+            newSellerBalance = await web3.eth.getBalance(seller)
+            newSellerBalance = new web3.utils.BN(oldSellerBalance)
+
+            let price
+            price = web3.utils.toWei('1','Ether')
+            price = new web3.utils.BN(price)
+
+            // console.log(oldSellerBalance,newSellerBalance,price)
+            const exepectedBalance = oldSellerBalance.add(price)
+            assert.equal(newSellerBalance,oldSellerBalance,exepectedBalance.toString())
+
+            //Fail try buy product that not existed
+            await marketplace.purchaseProduct(99,{from:buyer,value: web3.utils.toWei('1','Ether')}).should.be.rejected;
+            //not enough eth
+            await marketplace.purchaseProduct(productCount,{from:buyer,value: web3.utils.toWei('0.5','Ether')}).should.be.rejected;
+            //deployer try to buy ownproduct
+            await marketplace.purchaseProduct(productCount,{from:deployer,value: web3.utils.toWei('1','Ether')}).should.be.rejected;
+
+            //buer buy own product
+            await marketplace.purchaseProduct(productCount,{from:buyer,value: web3.utils.toWei('1','Ether')}).should.be.rejected;
+
         });
 
 

@@ -2,10 +2,6 @@ import React, { Component } from 'react';
 import logo from '../logo.png';
 import './App.css';
 class NavBar extends Component {
-
-
-
-
     render() {
         return (
             <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
